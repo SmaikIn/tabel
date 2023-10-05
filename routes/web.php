@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/{id?}/{param1?}/{param2?}', [\App\Http\Controllers\TabelController::class, 'index']);
 
 
 Route::group(['prefix' => 'admin'], function () {
