@@ -6,13 +6,15 @@ use App\Employee;
 use App\Models\User;
 use App\Shift;
 use Carbon\Carbon;
+use DateInterval;
+use DateTime;
 use Illuminate\Http\Request;
 use function PHPUnit\Framework\exactly;
 
 class TabelController extends Controller
 {
 //исполльзовать Carbon
-    public function index($employeeId = null, $year = null, $month = null)
+    public function index($employeeId = null, $year = null, $month = null, $action = 'read')
     {
         if ($employeeId != null) {
             if ($year == null) {
@@ -64,29 +66,150 @@ class TabelController extends Controller
             echo "надо выбрать сотрудника обязательно, иначе работать не будет";
             exit();
         }
-
-
         $employee = Employee::findOrFail($employeeId);
-        /*
-         $shifts = $employee->shifts()->where('employee_id', $employeeId)
-             ->whereBetween('start', [$startDate, $endDate])
-             ->get();;
-        $employeeId, $year, $month
- */
+        $array = array_keys($buttons['months']);
+        $el = array_search($month, $array) + 1;
+        $date_start = Carbon::create($year, $el)->startOfMonth();
+        $date_end = Carbon::create($year, $el)->endOfMonth();
+        $shifts = $employee->shifts()->whereBetween('start_shift', [$date_start, $date_end])->get();
+        if ($action == 'read') {
+            return view('tabel')->with([
+                'users' => $users,
+                'user' => $employee,
+                'months' => $buttons['months'],
+                'years' => $buttons['years'],
+                'year' => $year,
+                'month' => $month,
+                'el' => $el,
+                'shifts' => $shifts,
+            ]);
+        } else {
+            if (count($shifts) == 0) {
+                exit();
+            }
+            $total_time = 0;
+            $timeListAll = [
+                '8 to 20' => 0,
+                '20 to 23' => 0,
+                '23 to 8' => 0,
+            ];
+            foreach ($shifts as $shift) {
 
-        $result = 1;
-        $shifts = $employee->shifts;
+                $start_shift = Carbon::create($shift->start_shift); // Задаем время начала смены
+                $end_shift = Carbon::create($shift->end_shift); // Задаем время окончания смены
+                $q1 = $start_shift->copy();
+                $q2 = $q1->copy();
+                //$q2->;
 
-        return view('tabel')->with([
-            'users' => $users,
-            'user' => $employee,
-            'months' => $buttons['months'],
-            'years' => $buttons['years'],
-            'year' => $year,
-            'month' => $month,
-            'shifts' => $shifts,
-            'result' => $result,
-        ]);
+// Задаем промежутки рабочего дня
+                $shiftsList = [
+                    [
+                        'start' => $q1->copy()->setTime(8, 00),
+                        'end' => $q1->copy()->setTime(20, 00),
+                        'part' => 1,
+                    ],
+                    [
+                        'start' => $q1->copy()->setTime(20, 00),
+                        'end' => $q1->copy()->setTime(23, 00),
+                        'part' => 2,
+                    ],
+                    [
+                        'start' => $q1->copy()->setTime(23, 00),
+                        'end' => $q2->add(1, 'day')->setTime(8, 00),
+                        'part' => 3,
+                    ],
+                ];
+
+                $timeList[$shift->id] = [
+                    '8 to 20' => 0,
+                    '20 to 23' => 0,
+                    '23 to 8' => 0,
+                    'shift' => $shift,
+                ];
+
+
+                foreach ($shiftsList as $item) {
+                    $start = max($item['start'], $start_shift); // Начало промежутка рабочего дня
+                    $end = min($item['end'], $end_shift); // Конец промежутка рабочего дня
+                    if ($end > $start) {
+                        $total_time += $end->timestamp - $start->timestamp;
+                        $total_hours = floor(($end->timestamp - $start->timestamp) / 3600); // Получаем целое число часов
+                        $total_minutes = floor(fmod(($end->timestamp - $start->timestamp), 3600) / 60); // Получаем целое число минут
+                        switch ($item['part']) {
+                            case "1":
+                                $timeList[$shift->id]['8 to 20'] = $total_hours . ' часов ' . $total_minutes . ' минут';
+                                $timeListAll['8 to 20'] += $end->timestamp - $start->timestamp;
+                                break;
+                            case "2":
+                                $timeList[$shift->id]['20 to 23'] = $total_hours . ' часов ' . $total_minutes . ' минут';
+                                $timeListAll['20 to 23'] += $end->timestamp - $start->timestamp;
+                                break;
+                            case "3":
+                                $timeList[$shift->id]['23 to 8'] = $total_hours . ' часов ' . $total_minutes . ' минут';
+                                $timeListAll['23 to 8'] += $end->timestamp - $start->timestamp;
+                                break;
+                        }
+
+
+                    }
+
+
+                }
+
+            }
+            $total_hours = floor($total_time / 3600); // Получаем целое число часов
+            $total_minutes = floor(fmod($total_time, 3600) / 60); // Получаем целое число минут
+            $total_time = 'Общее количество отработанных часов: ' . $total_hours . ' часов ' . $total_minutes . ' минут';
+            foreach ($timeListAll as $k => $item) {
+                $total_hours = floor($item / 3600); // Получаем целое число часов
+                $total_minutes = floor(fmod($item, 3600) / 60); // Получаем целое число минут
+                $result[$k] = $total_hours . ' часов ' . $total_minutes . ' минут';
+            }
+
+            return view('report')->with(
+                [
+                    'user' => $employee,
+                    'year' => $year,
+                    'month' => $month,
+                    'result' => $result,
+                    'total_time' => $total_time,
+                    'timeList' => $timeList,
+                    'i' => 1
+                ]
+            );
+
+
+        }
     }
-    //
+
+    public function createShift(Request $request)
+    {
+        $shift = new Shift;
+        $shift->employee_id = $request->employee_id;
+        $shift->start_shift = $request->start_shift;
+        $shift->end_shift = $request->end_shift;
+        $shift->obed = $request->obed;
+        $shift->comment = $request->comment;
+        $shift->save();
+        return response($request, 200);
+    }
+
+    public function updateShift(int $id, Request $request)
+    {
+        $shift = Shift::find($id);
+        $shift->employee_id = $request->employee_id;
+        $shift->start_shift = $request->start_shift;
+        $shift->end_shift = $request->end_shift;
+        $shift->obed = $request->obed;
+        $shift->comment = $request->comment;
+        $shift->save();
+        return response($shift, 200);
+    }
+
+    public function deleteShift(int $id)
+    {
+        Shift::destroy($id);
+        return response('ok', 200);
+    }
+
 }

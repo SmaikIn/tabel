@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/{id?}/{param1?}/{param2?}', [\App\Http\Controllers\TabelController::class, 'index']);
-
 
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
 });
+
+Route::get('/{id?}/{param1?}/{param2?}/{param3?}', [\App\Http\Controllers\TabelController::class, 'index']);
+
+

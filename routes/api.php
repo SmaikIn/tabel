@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/shifts', [\App\Http\Controllers\TabelController::class, 'createShift']);
+Route::put('/shifts/{id}', [\App\Http\Controllers\TabelController::class, 'updateShift']);
+Route::delete('/shifts/{id}', [\App\Http\Controllers\TabelController::class, 'deleteShift']);
