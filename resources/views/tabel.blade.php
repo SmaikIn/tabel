@@ -18,60 +18,157 @@
 
 <center>
     <h1>Рабочий табель</h1>
-    <h2>{{$user->name}}</h2>
-    <strong>Год</strong>
-    <br>
-    <div class="btn-group">
-        @foreach($years as $k=>$v)
-            <a href="{{$v}}" class="btn @if($k == $year) btn-warning @else btn-primary  @endif"
-               aria-current="page">{{$k}}</a>
-        @endforeach
-    </div>
-    <br>
-    <strong>Месяц</strong>
-    <br>
-    <div class="btn-group">
-        @foreach($months as $k=>$v)
-            <a href="{{$v}}" class="btn  @if($k == $month) btn-warning @else btn-primary @endif"
-               aria-current="page">{{$k}}</a>
-        @endforeach
-    </div>
-    <br>
-    <strong>Сотрудник</strong>
-    <br>
-    <div class="row" style="width: 1000px; text-align: center">
-        <select style="text-align: center" class="form-select" onchange="goToUrl(this)">
+    <div class="btn-group-vertical" role="group" aria-label="Vertical button group">
+        <select style="text-align: center" class="form-select" id="employee" onchange="goToUrl(this)">
             @foreach($users as $k => $v)
                 {{$k}}
                 <option @if($v == $user->name) selected @endif value="{{$k}}"> {{$v}} </option>
             @endforeach
         </select>
+        <div class="btn-group" role="group" aria-label="Basic example" style="width: 1000px; text-align: center">
+            <a href="/{{$user->id}}/{{$year}}/{{$el}}/report" target="_blank" style="width: 400px" class="btn btn-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-layout-text-window" viewBox="0 0 16 16">
+                    <path
+                        d="M3 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5z"/>
+                    <path
+                        d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v1H1V2a1 1 0 0 1 1-1h12zm1 3v10a1 1 0 0 1-1 1h-2V4h3zm-4 0v11H2a1 1 0 0 1-1-1V4h10z"/>
+                </svg>
+                Отчёт
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     class="bi bi-layout-text-window-reverse" viewBox="0 0 16 16">
+                    <path
+                        d="M13 6.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5zm0 3a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5zm-.5 2.5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1h5z"/>
+                    <path
+                        d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM2 1a1 1 0 0 0-1 1v1h14V2a1 1 0 0 0-1-1H2zM1 4v10a1 1 0 0 0 1 1h2V4H1zm4 0v11h9a1 1 0 0 0 1-1V4H5z"/>
+                </svg>
+            </a>
+            <button class="btn btn-outline-dark" onclick="newEmployee()">Добавить сотрудника</button>
+            <button class="btn btn-outline-danger" onclick="deleteEmployee()">Удалить выбранного сотрудника</button>
+            <script>
+                function newEmployee() {
+                    const name = prompt('Имя сотрудника');
+                    if (name) {
+                        createEmployee(name);
+                    }
+                }
+            </script>
+            <script>
+                function deleteEmployee() {
+
+                    let str = document.getElementById('employee').value;
+
+                    var numbers = str.split('/').filter(Boolean).map(function (num) {
+                        return parseInt(num);
+                    });
+                    var id = numbers[0]
+                    // Создать объект newData с новыми данными
+                    var newData = {
+                        id: id,
+                    };
+
+                    // Создать новый объект XMLHttpRequest
+                    var xhr = new XMLHttpRequest();
+
+                    // Установить метод и URL запроса
+                    xhr.open('DELETE', '/api/employee/' + id, true);
+
+                    // Установить заголовок Content-Type
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    // Установить обработчик события загрузки
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            // Обработка успешного обновления
+                            console.log(xhr.responseText);
+                            alert('Сотрудник успешно удалён');
+                            // Дополнительные действия после обновления смены
+                        } else {
+                            // Обработка ошибок при обновлении
+                            console.log(xhr.responseText);
+                            alert('Произошла ошибка при удалении сотрудника');
+                        }
+                    };
+
+                    // Отправить запрос на обновление смены с новыми данными
+                    xhr.send(JSON.stringify(newData));
+
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 500);
+
+                }
+            </script>
+            <script>
+                function createEmployee(name) {
+
+                    // Создать объект newData с новыми данными
+                    var newData = {
+                        name: name
+                    };
+
+                    // Создать новый объект XMLHttpRequest
+                    var xhr = new XMLHttpRequest();
+
+                    // Установить метод и URL запроса
+                    xhr.open('POST', '/api/employee', true);
+
+                    // Установить заголовок Content-Type
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    // Установить обработчик события загрузки
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            // Обработка успешного обновления
+                            console.log(xhr.responseText);
+                            alert('Сотрудник ' + name + ' успешно добавлен');
+                            // Дополнительные действия после обновления смены
+                        } else {
+                            // Обработка ошибок при обновлении
+                            console.log(xhr.responseText);
+                            alert('Произошла ошибка при добавлении ' + name + ' сотрудника');
+                        }
+                    };
+
+                    // Отправить запрос на обновление смены с новыми данными
+                    xhr.send(JSON.stringify(newData));
+
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 500);
+                }
+            </script>
+        </div>
     </div>
-    <div class="row" style="width: 1000px; text-align: center">
-        <a href="/{{$user->id}}/{{$year}}/{{$el}}/report" target="_blank" class="btn btn-success">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                 class="bi bi-layout-text-window" viewBox="0 0 16 16">
-                <path
-                    d="M3 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5z"/>
-                <path
-                    d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v1H1V2a1 1 0 0 1 1-1h12zm1 3v10a1 1 0 0 1-1 1h-2V4h3zm-4 0v11H2a1 1 0 0 1-1-1V4h10z"/>
-            </svg>
-            Отчёт
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                 class="bi bi-layout-text-window-reverse" viewBox="0 0 16 16">
-                <path
-                    d="M13 6.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5zm0 3a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 .5-.5zm-.5 2.5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1h5z"/>
-                <path
-                    d="M14 0a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12zM2 1a1 1 0 0 0-1 1v1h14V2a1 1 0 0 0-1-1H2zM1 4v10a1 1 0 0 0 1 1h2V4H1zm4 0v11h9a1 1 0 0 0 1-1V4H5z"/>
-            </svg>
-        </a>
+
+    <br>
+    <br>
+    <strong>Выбор периода</strong>
+    <br>
+    <div class="btn-group-vertical" role="group" aria-label="Vertical button group">
+        <div class="btn-group" style="width: 1000px; text-align: center">
+            @foreach($years as $k=>$v)
+                <a href="{{$v}}" class="btn @if($k == $year) btn-warning @else btn-primary  @endif"
+                   aria-current="page">{{$k}}</a>
+            @endforeach
+        </div>
+        <div class="btn-group" style="width: 1000px; text-align: center">
+            @foreach($months as $k=>$v)
+                <a href="{{$v}}" class="btn  @if($k == $month) btn-warning @else btn-primary @endif"
+                   aria-current="page">{{$k}}</a>
+            @endforeach
+        </div>
     </div>
+
+    <br>
     <script>
         function goToUrl(selectElement) {
             var selectedValue = selectElement.value;
             window.location.href = selectedValue;
         }
     </script>
+
+
     <table class="table table-hover" style="width: 1400px; text-align: center; justify-content: center">
         <thead>
         <td width="100">№</td>
@@ -87,17 +184,12 @@
                 <input id="new_shift_id" class="form-control" name="id" readonly>
             </td>
             <td>
-                <input id="new_shift_start" class="form-control" required type="datetime-local" name="start_shift">
+                <input id="new_shift_start" class="form-control" min="{{$calendarS}}"
+                       max="{{$calendarS->copy()->endOfMonth()}}" required type="datetime-local" name="start_shift">
             </td>
             <td>
-                @if($el < 10)
-                    {{$el}}
-                    <input id="new_shift_end" class="form-control" min="{{$year}}-0{{$el}}-01T00:00"
-                           max="{{$year}}-0{{$el}}-31T23:59" required type="datetime-local" name="end_shift">
-                @else
-                    <input id="new_shift_end" class="form-control" min="{{$year}}-{{$el}}-01T00:00"
-                           max="{{$year}}-{{$el}}-31T23:59" required type="datetime-local" name="end_shift">
-                @endif
+                <input id="new_shift_end" class="form-control" min="{{$calendarS}}"
+                       max="{{$calendarE}}" required type="datetime-local" name="end_shift">
             </td>
             <td>
                 <input id="new_shift_obed" class="form-check-input" checked type="checkbox" name="obed">
@@ -127,12 +219,14 @@
                            disabled>
                 </td>
                 <td>
-                    <input id="shift_start_{{$shift->id}}" class="form-control" type="datetime-local"
+                    <input id="shift_start_{{$shift->id}}" class="form-control" min="{{$calendarS}}"
+                           max="{{$calendarS->copy()->endOfMonth()}}" type="datetime-local"
                            value="{{$shift->start_shift}}"
                            name="start">
                 </td>
                 <td>
-                    <input id="shift_end_{{$shift->id}}" class="form-control" type="datetime-local"
+                    <input id="shift_end_{{$shift->id}}" class="form-control" min="{{$calendarS}}"
+                           max="{{$calendarE}}" type="datetime-local"
                            value="{{$shift->end_shift}}"
                            name="end">
                 </td>

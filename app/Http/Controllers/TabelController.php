@@ -16,7 +16,9 @@ class TabelController extends Controller
 //исполльзовать Carbon
     public function index($employeeId = null, $year = null, $month = null, $action = 'read')
     {
-        if ($employeeId != null) {
+        $employee = Employee::find($employeeId);
+        if ($employee != null) {
+            $employeeId = $employee->id;
             if ($year == null) {
                 $year = Carbon::now()->year;
             }
@@ -51,7 +53,7 @@ class TabelController extends Controller
                 $monthQ = $month;
             }
             $calendarS = Carbon::create($year, $month)->startOfMonth();
-            $calendarE = Carbon::create($year, $month)->endOfMonth();
+            $calendarE = Carbon::create($year, $month)->endOfMonth()->addDay();
             $i = 1;
             foreach ($buttons['months'] as $k => $v) {
                 if ($i == $month) {
@@ -67,8 +69,8 @@ class TabelController extends Controller
             }
 
         } else {
-            echo "надо выбрать сотрудника обязательно, иначе работать не будет";
-            exit();
+            $employee = Employee::first();
+            return $this->index($employee->id);
         }
         $employee = Employee::findOrFail($employeeId);
         $array = array_keys($buttons['months']);
@@ -86,6 +88,8 @@ class TabelController extends Controller
                 'month' => $month,
                 'el' => $el,
                 'shifts' => $shifts,
+                'calendarS' => $calendarS,
+                'calendarE' => $calendarE,
             ]);
         } else {
             if (count($shifts) == 0) {

@@ -21,3 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/shifts', [\App\Http\Controllers\TabelController::class, 'createShift']);
 Route::put('/shifts/{id}', [\App\Http\Controllers\TabelController::class, 'updateShift']);
 Route::delete('/shifts/{id}', [\App\Http\Controllers\TabelController::class, 'deleteShift']);
+
+Route::apiResource('/employee', \App\Http\Controllers\EmployeeController::class);
