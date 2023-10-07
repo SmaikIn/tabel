@@ -153,15 +153,15 @@ class TabelController extends Controller
                         switch ($item['part']) {
                             case "1":
                                 $timeList[$shift->id]['8 to 20'] = $total_hours . ' часов ' . $total_minutes . ' минут';
-                                $timeListAll['8 to 20'] += $end->timestamp - $start->timestamp;
+                                $timeListAll['8 to 20'] += $delta;
                                 break;
                             case "2":
                                 $timeList[$shift->id]['20 to 23'] = $total_hours . ' часов ' . $total_minutes . ' минут';
-                                $timeListAll['20 to 23'] += $end->timestamp - $start->timestamp;
+                                $timeListAll['20 to 23'] += $delta;
                                 break;
                             case "3":
                                 $timeList[$shift->id]['23 to 8'] = $total_hours . ' часов ' . $total_minutes . ' минут';
-                                $timeListAll['23 to 8'] += $end->timestamp - $start->timestamp;
+                                $timeListAll['23 to 8'] += $delta;
                                 break;
                         }
 
