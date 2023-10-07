@@ -52,7 +52,6 @@ class TabelController extends Controller
             }
             $calendarS = Carbon::create($year, $month)->startOfMonth();
             $calendarE = Carbon::create($year, $month)->endOfMonth();
-            dd($calendarE);
             $i = 1;
             foreach ($buttons['months'] as $k => $v) {
                 if ($i == $month) {
