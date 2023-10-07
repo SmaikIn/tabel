@@ -90,7 +90,14 @@
                 <input id="new_shift_start" class="form-control" required type="datetime-local" name="start_shift">
             </td>
             <td>
-                <input id="new_shift_end" class="form-control" required type="datetime-local" name="end_shift">
+                @if($el < 10)
+                    {{$el}}
+                    <input id="new_shift_end" class="form-control" min="{{$year}}-0{{$el}}-01T00:00"
+                           max="{{$year}}-0{{$el}}-31T23:59" required type="datetime-local" name="end_shift">
+                @else
+                    <input id="new_shift_end" class="form-control" min="{{$year}}-{{$el}}-01T00:00"
+                           max="{{$year}}-{{$el}}-31T23:59" required type="datetime-local" name="end_shift">
+                @endif
             </td>
             <td>
                 <input id="new_shift_obed" class="form-check-input" checked type="checkbox" name="obed">

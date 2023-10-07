@@ -42,12 +42,17 @@ class TabelController extends Controller
                 'Декабрь' => '/' . $employeeId . '/' . $year . '/' . 12,
             ];
 
+
             if ($month == null) {
                 $month = Carbon::now()->month;
                 $monthQ = Carbon::now()->month;
+
             } else {
                 $monthQ = $month;
             }
+            $calendarS = Carbon::create($year, $month)->startOfMonth();
+            $calendarE = Carbon::create($year, $month)->endOfMonth();
+            dd($calendarE);
             $i = 1;
             foreach ($buttons['months'] as $k => $v) {
                 if ($i == $month) {
@@ -132,9 +137,16 @@ class TabelController extends Controller
                     $start = max($item['start'], $start_shift); // Начало промежутка рабочего дня
                     $end = min($item['end'], $end_shift); // Конец промежутка рабочего дня
                     if ($end > $start) {
-                        $total_time += $end->timestamp - $start->timestamp;
-                        $total_hours = floor(($end->timestamp - $start->timestamp) / 3600); // Получаем целое число часов
-                        $total_minutes = floor(fmod(($end->timestamp - $start->timestamp), 3600) / 60); // Получаем целое число минут
+                        if ($shift->obed && $item['part'] == 1) {
+                            $delta = $end->timestamp - $start->timestamp - (60 * 60);
+                        } else {
+                            $delta = $end->timestamp - $start->timestamp;
+                        }
+                        $total_time += $delta;
+
+                        $total_hours = floor(($delta) / 3600); // Получаем целое число часов
+                        $total_minutes = floor(fmod(($delta), 3600) / 60); // Получаем целое число минут
+
                         switch ($item['part']) {
                             case "1":
                                 $timeList[$shift->id]['8 to 20'] = $total_hours . ' часов ' . $total_minutes . ' минут';
