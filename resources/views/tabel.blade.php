@@ -26,7 +26,8 @@
             @endforeach
         </select>
         <div class="btn-group" role="group" aria-label="Basic example" style="width: 1000px; text-align: center">
-            <a href="/{{$user->id}}/{{$year}}/{{$el}}/report" target="_blank" style="width: 400px" class="btn btn-success">
+            <a href="/{{$user->id}}/{{$year}}/{{$el}}/report" target="_blank" style="width: 400px"
+               class="btn btn-success">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                      class="bi bi-layout-text-window" viewBox="0 0 16 16">
                     <path
@@ -44,12 +45,20 @@
                 </svg>
             </a>
             <button class="btn btn-outline-dark" onclick="newEmployee()">Добавить сотрудника</button>
-            <button class="btn btn-outline-danger" onclick="deleteEmployee()">Удалить выбранного сотрудника</button>
+            <button class="btn btn-outline-danger" onclick="preDeleteEmployee()">Удалить выбранного сотрудника</button>
             <script>
                 function newEmployee() {
                     const name = prompt('Имя сотрудника');
                     if (name) {
                         createEmployee(name);
+                    }
+                }
+            </script>
+            <script>
+                function preDeleteEmployee() {
+                    let res = confirm('Вы точно хотите удалить сотрудника?')
+                    if (res) {
+                        deleteEmployee()
                     }
                 }
             </script>
@@ -329,7 +338,7 @@
             if (xhr.status === 200) {
                 // Обработка успешного обновления
                 console.log(xhr.responseText);
-                alert('Смена успешно создана');
+                //alert('Смена успешно создана');
                 // Дополнительные действия после обновления смены
             } else {
                 // Обработка ошибок при обновлении
